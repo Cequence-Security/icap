@@ -119,7 +119,6 @@ func (w *respWriter) WriteHeader(code int, httpMessage interface{}, hasBody bool
 		}
 	}
 
-	w.header.Set("Encapsulated", encap)
 	if _, ok := w.header["Date"]; !ok {
 		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	}
@@ -133,6 +132,12 @@ func (w *respWriter) WriteHeader(code int, httpMessage interface{}, hasBody bool
 	}
 	fmt.Fprintf(bw, "ICAP/1.0 %d %s\r\n", code, status)
 	w.header.Write(bw)
+
+	// ensure that Encapsulated header is the last one
+	h := http.Header{}
+	h.Set("Encapsulated", encap)
+	h.Write(bw)
+
 	io.WriteString(bw, "\r\n")
 
 	if header != nil {
